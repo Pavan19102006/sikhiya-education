@@ -1,0 +1,89 @@
+name: sikhiya_offline
+description: Offline-first educational platform for rural schools in Punjab
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+  flutter: ">=3.10.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  
+  # State Management
+  flutter_riverpod: ^2.4.9
+  riverpod_annotation: ^2.3.3
+  
+  # Local Database (Offline Storage)
+  drift: ^2.14.1
+  sqlite3_flutter_libs: ^0.5.15
+  path_provider: ^2.1.1
+  path: ^1.8.3
+  
+  # HTTP & Network
+  dio: ^5.3.4
+  connectivity_plus: ^5.0.2
+  
+  # Background Tasks & Sync
+  workmanager: ^0.5.2
+  
+  # UI & Navigation
+  go_router: ^12.1.3
+  flutter_localizations:
+    sdk: flutter
+  intl: ^0.18.1
+  
+  # Media & Assets
+  cached_network_image: ^3.3.0
+  video_player: ^2.8.1
+  
+  # Utilities
+  uuid: ^4.2.1
+  logger: ^2.0.2+1
+  equatable: ^2.0.5
+  freezed_annotation: ^2.4.1
+  json_annotation: ^4.8.1
+  
+  # Platform Integration
+  share_plus: ^7.2.1
+  permission_handler: ^11.1.0
+  
+  # Security
+  crypto: ^3.0.3
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  
+  # Code Generation
+  build_runner: ^2.4.7
+  drift_dev: ^2.14.1
+  riverpod_generator: ^2.3.9
+  freezed: ^2.4.6
+  json_serializable: ^6.7.1
+  
+  # Linting & Analysis
+  flutter_lints: ^3.0.1
+  very_good_analysis: ^5.1.0
+  
+  # Testing
+  mocktail: ^1.0.2
+  integration_test:
+    sdk: flutter
+
+flutter:
+  uses-material-design: true
+  
+  assets:
+    - assets/images/
+    - assets/videos/
+    - assets/audio/
+    - assets/fonts/
+  
+  fonts:
+    - family: Roboto
+      fonts:
+        - asset: assets/fonts/Roboto-Regular.ttf
+        - asset: assets/fonts/Roboto-Bold.ttf
+          weight: 700
