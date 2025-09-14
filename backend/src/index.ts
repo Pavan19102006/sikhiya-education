@@ -25,10 +25,20 @@ const PORT = process.env.PORT || 3000;
 
 // Security middleware
 app.use(helmet());
-app.use(cors({
-  origin: process.env.ALLOWED_ORIGINS?.split(',') || ['http://localhost:3000'],
-  credentials: true,
-}));
+
+// CORS: permissive in development, configurable in production
+const corsOptions = process.env.NODE_ENV === 'production'
+  ? {
+      origin: process.env.ALLOWED_ORIGINS?.split(',') || ['http://localhost:3000'],
+      credentials: true,
+      allowedHeaders: ['Content-Type', 'Authorization'],
+    }
+  : {
+      origin: true, // reflect request origin
+      credentials: true,
+      allowedHeaders: ['Content-Type', 'Authorization'],
+    };
+app.use(cors(corsOptions));
 
 // General middleware
 app.use(compression());

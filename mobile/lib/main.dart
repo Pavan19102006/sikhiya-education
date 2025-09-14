@@ -1,26 +1,27 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
 import 'core/constants/app_constants.dart';
-import 'core/database/database.dart';
-import 'core/services/sync_service.dart';
+import 'core/database/database_port.dart';
 import 'core/sync/sync_manager.dart';
 import 'shared/widgets/app_router.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
-  // Initialize database
-  final database = AppDatabase();
-  
-  // Initialize background sync
-  await SyncManager.initialize();
+  // Initialize database and background sync (skip DB init on web)
+  AppDatabase? database;
+  if (!kIsWeb) {
+    database = AppDatabase();
+    await SyncManager.initialize();
+  }
   
   runApp(
     ProviderScope(
       overrides: [
-        databaseProvider.overrideWithValue(database),
+        if (database != null) databaseProvider.overrideWithValue(database),
       ],
       child: const SikhiyaOfflineApp(),
     ),

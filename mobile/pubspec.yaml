@@ -32,7 +32,7 @@ dependencies:
   go_router: ^12.1.3
   flutter_localizations:
     sdk: flutter
-  intl: ^0.18.1
+  intl: ^0.20.2
   
   # Media & Assets
   cached_network_image: ^3.3.0
@@ -48,6 +48,7 @@ dependencies:
   # Platform Integration
   share_plus: ^7.2.1
   permission_handler: ^11.1.0
+  flutter_secure_storage: ^9.0.0
   
   # Security
   crypto: ^3.0.3
@@ -75,15 +76,8 @@ dev_dependencies:
 flutter:
   uses-material-design: true
   
-  assets:
-    - assets/images/
-    - assets/videos/
-    - assets/audio/
-    - assets/fonts/
+  # No bundled assets configured yet for web demo
+  assets: []
   
-  fonts:
-    - family: Roboto
-      fonts:
-        - asset: assets/fonts/Roboto-Regular.ttf
-        - asset: assets/fonts/Roboto-Bold.ttf
-          weight: 700
+  # Use default Material fonts on web; remove missing font assets
+  fonts: []
