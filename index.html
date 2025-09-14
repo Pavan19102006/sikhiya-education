@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <!--
+    If you are serving your web app in a path other than the root, change the
+    href value below to reflect the base path you are serving from.
+
+    The path provided below has to start and end with a slash "/" in order for
+    it to work correctly.
+
+    For more details:
+    * https://developer.mozilla.org/en-US/docs/Web/HTML/Element/base
+
+    This is a placeholder for base href that will be replaced by the value of
+    the `--base-href` argument provided to `flutter build`.
+  -->
+  <base href="/">
+
+  <meta charset="UTF-8">
+  <meta content="IE=Edge" http-equiv="X-UA-Compatible">
+  <meta name="description" content="Sikhiya - Offline Rural Education Platform">
+
+  <!-- PWA and offline capability -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#1976D2">
+
+  <!-- iOS meta tags & icons -->
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-title" content="Sikhiya - Offline Learning">
+  <link rel="apple-touch-icon" href="icons/Icon-192.png">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="favicon.png"/>
+
+  <title>Sikhiya - Offline Learning Platform</title>
+  <link rel="manifest" href="manifest.json">
+
+  <!-- Offline indicator styles -->
+  <style>
+    .offline-indicator {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      background: #f44336;
+      color: white;
+      text-align: center;
+      padding: 8px;
+      font-family: Arial, sans-serif;
+      font-size: 14px;
+      z-index: 9999;
+      display: none;
+    }
+    .offline-indicator.show {
+      display: block;
+    }
+    .loading-splash {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: #1976D2;
+      color: white;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      font-family: Arial, sans-serif;
+      z-index: 10000;
+    }
+    .loading-splash h1 {
+      margin: 20px 0;
+      font-size: 32px;
+    }
+    .loading-splash p {
+      font-size: 16px;
+      opacity: 0.8;
+    }
+    .spinner {
+      border: 4px solid rgba(255,255,255,0.3);
+      border-radius: 50%;
+      border-top: 4px solid white;
+      width: 40px;
+      height: 40px;
+      animation: spin 2s linear infinite;
+      margin: 20px 0;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <!-- Loading splash screen -->
+  <div class="loading-splash" id="loading-splash">
+    <h1>🎓 Sikhiya</h1>
+    <div class="spinner"></div>
+    <p>Offline Rural Education Platform</p>
+    <p>Loading educational content...</p>
+  </div>
+
+  <!-- Offline indicator -->
+  <div class="offline-indicator" id="offline-indicator">
+    📡 You're offline - Using cached content for learning
+  </div>
+
+  <script src="flutter_bootstrap.js" async></script>
+
+  <script>
+    // Service Worker Registration for Offline Functionality
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js')
+          .then((registration) => {
+            console.log('🎓 Sikhiya SW registered:', registration.scope);
+            
+            // Listen for service worker updates
+            registration.addEventListener('updatefound', () => {
+              const newWorker = registration.installing;
+              newWorker.addEventListener('statechange', () => {
+                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                  // New content available, refresh the page
+                  window.location.reload();
+                }
+              });
+            });
+          })
+          .catch((error) => {
+            console.log('❌ Sikhiya SW registration failed:', error);
+          });
+      });
+    }
+
+    // Network status monitoring for rural connectivity
+    function updateOfflineStatus() {
+      const offlineIndicator = document.getElementById('offline-indicator');
+      if (!navigator.onLine) {
+        offlineIndicator.classList.add('show');
+        console.log('📡 Offline mode - Using cached content');
+      } else {
+        offlineIndicator.classList.remove('show');
+        console.log('🌐 Online mode - Fresh content available');
+        
+        // Trigger background sync when back online
+        if ('serviceWorker' in navigator && 'sync' in window.ServiceWorkerRegistration.prototype) {
+          navigator.serviceWorker.ready.then((registration) => {
+            return registration.sync.register('background-sync');
+          }).catch((error) => {
+            console.log('Background sync registration failed:', error);
+          });
+        }
+      }
+    }
+
+    // Monitor network status changes
+    window.addEventListener('online', updateOfflineStatus);
+    window.addEventListener('offline', updateOfflineStatus);
+    
+    // Initial check
+    updateOfflineStatus();
+
+    // Hide loading splash when Flutter app loads
+    window.addEventListener('flutter-first-frame', () => {
+      setTimeout(() => {
+        const splash = document.getElementById('loading-splash');
+        if (splash) {
+          splash.style.opacity = '0';
+          splash.style.transition = 'opacity 0.5s ease-out';
+          setTimeout(() => splash.remove(), 500);
+        }
+      }, 1000);
+    });
+
+    // Local storage management for offline content
+    function saveOfflineProgress(studentId, lessonId, progress) {
+      try {
+        const offlineData = JSON.parse(localStorage.getItem('sikhiya_offline_progress') || '[]');
+        const existingIndex = offlineData.findIndex(item => 
+          item.studentId === studentId && item.lessonId === lessonId
+        );
+        
+        const progressItem = {
+          studentId,
+          lessonId,
+          progress,
+          timestamp: Date.now(),
+          synced: false
+        };
+        
+        if (existingIndex >= 0) {
+          offlineData[existingIndex] = progressItem;
+        } else {
+          offlineData.push(progressItem);
+        }
+        
+        localStorage.setItem('sikhiya_offline_progress', JSON.stringify(offlineData));
+        console.log('💾 Progress saved offline:', progressItem);
+      } catch (error) {
+        console.error('Failed to save offline progress:', error);
+      }
+    }
+
+    // Make functions available globally for Flutter
+    window.saveOfflineProgress = saveOfflineProgress;
+    window.getNetworkStatus = () => navigator.onLine;
+
+    console.log('🎓 Sikhiya Offline Platform initialized - Ready for rural education!');
+  </script>
+</body>
+</html>
